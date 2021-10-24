@@ -34,35 +34,35 @@ public class SampleHandler extends AbstractHandler {
 		
 		MethodDeclarationPatterns methodDeclarationPatterns = new MethodDeclarationPatterns();
 		methodDeclarationPatterns.extractCFG();
-		SampleHandler.printMessage("Nbr of methods: " + methodDeclarationPatterns.countNbrOfMethods());
-		SampleHandler.printMessage("Nbr of logging methods: " + methodDeclarationPatterns.countNbrOfLoggingMethods());
-		SampleHandler.printMessage("Nbr of searched methods: " + methodDeclarationPatterns.countNbrOfMethods("asdf"));
-		
-		MethodInvocationPatterns methodInvocationPatterns = new MethodInvocationPatterns();
-		methodInvocationPatterns.extractCG(null, null, "logMessage");
-		methodInvocationPatterns.extractICFG(null, null, "logMessage");
-		SampleHandler.printMessage("Nbr of method invocations: " + methodInvocationPatterns.countNbrOfMethodInvocations());
-		SampleHandler.printMessage("Nbr of logging method invocations: " + methodInvocationPatterns.countNbrOfLoggingMethodInvocations());
-		SampleHandler.printMessage("Nbr of searched method invocations: " + methodInvocationPatterns.countNbrOfMethodInvocations("asdf"));
-		
-		SampleHandler.printMessage("All the logging method declarations: ");
-		for(JavaModel.LoggingMethod i : JavaModel.getLoggingMethods()) {
-			SampleHandler.printMessage("method: " + i.getMethod().toString());
-			SampleHandler.printMessage("method line: " + i.getLineNbr());
-			SampleHandler.printMessage("method class: " + ((TypeDeclaration)i.getParentClass()).getName().getIdentifier());
-			SampleHandler.printMessage("method package: " + i.getParentPackage().toString());
-			SampleHandler.printMessage("============================================================");
-		}
-		
-		SampleHandler.printMessage("All the logging method invocations: ");
-		for(JavaModel.LoggingMethod i : JavaModel.getLoggingMethodInvocations()) {
-			SampleHandler.printMessage("method: " + i.getMethod().toString());
-			SampleHandler.printMessage("method line: " + i.getLineNbr());
-			SampleHandler.printMessage("method class: " + ((TypeDeclaration)i.getParentClass()).getName().getIdentifier());
-			SampleHandler.printMessage("method package: " + i.getParentPackage().toString());
-			SampleHandler.printMessage("============================================================");
-		}
-		
+//		SampleHandler.printMessage("Nbr of methods: " + methodDeclarationPatterns.countNbrOfMethods());
+//		SampleHandler.printMessage("Nbr of logging methods: " + methodDeclarationPatterns.countNbrOfLoggingMethods());
+//		SampleHandler.printMessage("Nbr of searched methods: " + methodDeclarationPatterns.countNbrOfMethods("asdf"));
+//		
+//		MethodInvocationPatterns methodInvocationPatterns = new MethodInvocationPatterns();
+//		methodInvocationPatterns.extractCG(null, null, "logMessage");
+//		methodInvocationPatterns.extractICFG(null, null, "logMessage");
+//		SampleHandler.printMessage("Nbr of method invocations: " + methodInvocationPatterns.countNbrOfMethodInvocations());
+//		SampleHandler.printMessage("Nbr of logging method invocations: " + methodInvocationPatterns.countNbrOfLoggingMethodInvocations());
+//		SampleHandler.printMessage("Nbr of searched method invocations: " + methodInvocationPatterns.countNbrOfMethodInvocations("asdf"));
+//		
+//		SampleHandler.printMessage("All the logging method declarations: ");
+//		for(JavaModel.LoggingMethod i : JavaModel.getLoggingMethods()) {
+//			SampleHandler.printMessage("method: " + i.getMethod().toString());
+//			SampleHandler.printMessage("method line: " + i.getLineNbr());
+//			SampleHandler.printMessage("method class: " + ((TypeDeclaration)i.getParentClass()).getName().getIdentifier());
+//			SampleHandler.printMessage("method package: " + i.getParentPackage().toString());
+//			SampleHandler.printMessage("============================================================");
+//		}
+//		
+//		SampleHandler.printMessage("All the logging method invocations: ");
+//		for(JavaModel.LoggingMethod i : JavaModel.getLoggingMethodInvocations()) {
+//			SampleHandler.printMessage("method: " + i.getMethod().toString());
+//			SampleHandler.printMessage("method line: " + i.getLineNbr());
+//			SampleHandler.printMessage("method class: " + ((TypeDeclaration)i.getParentClass()).getName().getIdentifier());
+//			SampleHandler.printMessage("method package: " + i.getParentPackage().toString());
+//			SampleHandler.printMessage("============================================================");
+//		}
+//		
 
 		SampleHandler.printMessage("~~~~~~~~~~~~~~~~~~~~~~~~~~~finish~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		return null;

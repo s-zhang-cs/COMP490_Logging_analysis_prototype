@@ -24,20 +24,33 @@ public class CFGNodeIfStatement extends CFGNode{
 		Statement elseStatement = astNode.getElseStatement();
 		
 		CFGNode prev = null;
-		for(Object i : ((Block)thenStatement).statements()) {
-			CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode)i);
-			if(prev != null) {
-				prev.makeSequence(current);
+		//if statements with brackets:
+		//e.g. if(1 == 1) { doSomething; }
+		if(thenStatement instanceof Block){
+			CFGNodeFactory.reset();
+			for(Object i : ((Block)thenStatement).statements()) {
+				CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode)i);
+				if(prev != null) {
+					prev.makeSequence(current);
+				}
+				//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
+				if(prev != current) {
+					statementsInThenBlock.add(current);
+				}
+				prev = current;
 			}
-			//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-			if(prev != current) {
-				statementsInThenBlock.add(current);
-			}
-			prev = current;
+		}
+		//if statements with no brackets:
+		//e.g. if(1 == 1) doSomething;
+		else if(thenStatement instanceof Statement) {
+			CFGNodeFactory.reset();
+			CFGNode cfgNode = CFGNodeFactory.makeCFGNode(thenStatement);
+			statementsInThenBlock.add(cfgNode);
 		}
 		
 		prev = null;
-		//in case of "else"
+		//in case of "else" with brackets:
+		//e.g. else { doSomething; }
 		if(elseStatement instanceof Block) {
 			CFGNodeFactory.reset();
 			for(Object i : ((Block)elseStatement).statements()) {
@@ -53,11 +66,20 @@ public class CFGNodeIfStatement extends CFGNode{
 			}
 		}
 		//in case of "else if"
+		//e.g. else if { doSomething; }
 		else if(elseStatement instanceof IfStatement) {
+			CFGNodeFactory.reset();
 			CFGNode cfgNode = CFGNodeFactory.makeCFGNode(elseStatement, "ifStatement");
 			statementsInElseBlock.add(cfgNode);
 		}
-		//in case of "if" only
+		//in case of "else" with no brackets:
+		//e.g. else doSomething;
+		else if(elseStatement instanceof Statement) {
+			CFGNodeFactory.reset();
+			CFGNode cfgNode = CFGNodeFactory.makeCFGNode(elseStatement);
+			statementsInElseBlock.add(cfgNode);
+		}
+		//in case of "if" only (no "else")
 		else if(elseStatement == null) {
 			statementsInElseBlock.add(new CFGNode(astNode, "emptyElseStatement"));
 		}
@@ -113,6 +135,10 @@ public class CFGNodeIfStatement extends CFGNode{
 	
 	@Override
 	public String makeDot(Set<CFGNode> traversed) {
+		if(traversed.contains(this)) {
+			return "";
+		}
+		traversed.add(this);
 		String str = "";
 		if(getFirstStatementInThenBlock() != null) {
 			str += this.toString() + "->" + getFirstStatementInThenBlock().toString() + "\n";
@@ -121,17 +147,9 @@ public class CFGNodeIfStatement extends CFGNode{
 			str += this.toString() + "->" + getFirstStatementInElseBlock().toString() + "\n";
 		}
 		for(CFGNode i : statementsInThenBlock) {
-			if(traversed.contains(i)) {
-				continue;
-			}
-			traversed.add(i);
 			str += i.makeDot(traversed);
 		}
 		for(CFGNode i : statementsInElseBlock) {
-			if(traversed.contains(i)) {
-				continue;
-			}
-			traversed.add(i);
 			str += i.makeDot(traversed);
 		}
 		return str;

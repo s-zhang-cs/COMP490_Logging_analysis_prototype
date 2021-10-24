@@ -24,11 +24,13 @@ public class MethodCFG {
 	private List<CFGNode> rootReturnStatements;
 	
 	public MethodCFG(MethodDeclaration node) {
+		CFGNodeFactory.reset();
 		root = new CFGNodeMethodDeclaration(node);
 		rootReturnStatements = new ArrayList<>();
 	}
 	
 	public MethodCFG(TypeDeclaration node) {
+		CFGNodeFactory.reset();
 		rootConstructor = new DefaultConstructor(node);
 		rootReturnStatements = new ArrayList<>();
 	}

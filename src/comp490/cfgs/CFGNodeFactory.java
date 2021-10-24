@@ -1,114 +1,141 @@
 package comp490.cfgs;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
+import comp490.logs.LoggingStatementFactory;
+
 public class CFGNodeFactory {
 	
-	//this class acts as a wrapper/pointer towards a certain CFGNode which groups 
-	//sequential ASTNodes into one CFGNode, in order to avoid polluting the CFG.
-	private static class ASTNodesBlock {
-		private static CFGNode cfgNode;
-		
-		private static CFGNode getCfgNode() {
-			return cfgNode;
-		}
-		
-		private static void setCfgNode(CFGNode cfgNode) {
-			ASTNodesBlock.cfgNode = cfgNode;
-		}
-		
-		private static void reset() {
-			cfgNode = null;
-		}
-	}
+	//this CFGNode groups sequential ASTNodes in the control flow into one CFGNode, in order to avoid polluting the CFG.
+	private static CFGNode cfgNode;
 	
 	public static void reset() {
-		ASTNodesBlock.reset();
+		cfgNode = null;
 	}
 	
 	public static CFGNode makeCFGNode(ASTNode astNode) {
 		if(astNode instanceof MethodDeclaration) {
-			ASTNodesBlock.reset();
-			return new CFGNodeMethodDeclaration((MethodDeclaration) astNode);
+			cfgNode = new CFGNodeMethodDeclaration((MethodDeclaration) astNode, "methodDeclaration");
+			return cfgNode;
 		}
+		//variable declarations will be grouped with other non-control-flow nodes
 		if(astNode instanceof VariableDeclarationStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeVariableDeclaration((VariableDeclarationStatement) astNode, "VariableDeclaration");
+			if(cfgNode == null || isControlFlowNode(cfgNode)) {
+				cfgNode = new CFGNodeVariableDeclaration((VariableDeclarationStatement)astNode, "variableDeclaration");
+				return cfgNode;
+			}
+			cfgNode.addASTNode(astNode);
+			return cfgNode;
 		}
 		if(astNode instanceof IfStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeIfStatement((IfStatement) astNode, "ifStatement");
+			cfgNode = new CFGNodeIfStatement((IfStatement) astNode, "ifStatement");
+			return cfgNode;
 		}
 		if(astNode instanceof ForStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeForStatement((ForStatement) astNode, "forStatement");
+			cfgNode = new CFGNodeForStatement((ForStatement) astNode, "forStatement");
+			return cfgNode;
+		}
+		if(astNode instanceof EnhancedForStatement) {
+			cfgNode = new CFGNodeEnhancedForStatement((EnhancedForStatement)astNode, "enhancedForStatement");
+			return cfgNode;
 		}
 		if(astNode instanceof WhileStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeWhileStatement((WhileStatement) astNode, "whileStatement");
+			cfgNode = new CFGNodeWhileStatement((WhileStatement) astNode, "whileStatement");
+			return cfgNode;
 		}
+		//expression statements will be grouped with other non-control-flow nodes, unless if it is a logging statement
 		if(astNode instanceof ExpressionStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeExpressionStatement((ExpressionStatement) astNode, "ExpressionStatement");
+			if(astNode instanceof MethodInvocation && LoggingStatementFactory.isLoggingStatement((MethodInvocation) astNode)) {
+				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement) astNode, "ExpressionStatement");
+				return cfgNode;
+			}
+			if(astNode instanceof ClassInstanceCreation) {
+				
+			}
+			if(cfgNode == null || isControlFlowNode(cfgNode)) {
+				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement)astNode, "expressionStatement");
+				return cfgNode;
+			}
+			cfgNode.addASTNode(astNode);
+			return cfgNode;
 		}
 		if(astNode instanceof ReturnStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeReturnStatement((ReturnStatement) astNode, "ReturnStatement");
+			cfgNode = new CFGNodeReturnStatement((ReturnStatement) astNode, "ReturnStatement");
+			return cfgNode;
 		}
-		if(ASTNodesBlock.getCfgNode() == null) {
-			ASTNodesBlock.setCfgNode(new CFGNode(astNode));
-			return ASTNodesBlock.getCfgNode();
-		}
-		else {
-			ASTNodesBlock.getCfgNode().addASTNode(astNode);
-			return ASTNodesBlock.getCfgNode();
-		}
+		//Do not group for unknown node types
+		cfgNode = new CFGNode(astNode);
+		return cfgNode;
 	}
 	
 	public static CFGNode makeCFGNode(ASTNode astNode, String name) {
 		if(astNode instanceof MethodDeclaration) {
-			ASTNodesBlock.reset();
-			return new CFGNodeMethodDeclaration((MethodDeclaration) astNode, name);
+			cfgNode = new CFGNodeMethodDeclaration((MethodDeclaration) astNode, name);
+			return cfgNode;
 		}
+		//variable declarations will be grouped with other non-control-flow nodes
 		if(astNode instanceof VariableDeclarationStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeVariableDeclaration((VariableDeclarationStatement) astNode, name);
+			if(cfgNode == null || isControlFlowNode(cfgNode)) {
+				cfgNode = new CFGNodeVariableDeclaration((VariableDeclarationStatement)astNode, "variableDeclaration");
+				return cfgNode;
+			}
+			cfgNode.addASTNode(astNode);
+			return cfgNode;
 		}
 		if(astNode instanceof IfStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeIfStatement((IfStatement) astNode, name);
+			cfgNode = new CFGNodeIfStatement((IfStatement) astNode, name);
+			return cfgNode;
 		}
 		if(astNode instanceof ForStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeForStatement((ForStatement) astNode, name);
+			cfgNode = new CFGNodeForStatement((ForStatement) astNode, name);
+			return cfgNode;
+		}
+		if(astNode instanceof EnhancedForStatement) {
+			cfgNode = new CFGNodeEnhancedForStatement((EnhancedForStatement)astNode, name);
+			return cfgNode;
 		}
 		if(astNode instanceof WhileStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeWhileStatement((WhileStatement) astNode, name);
+			cfgNode = new CFGNodeWhileStatement((WhileStatement) astNode, name);
+			return cfgNode;
 		}
+		//expression statements will be grouped with other non-control-flow nodes, unless if it is a logging statement
 		if(astNode instanceof ExpressionStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeExpressionStatement((ExpressionStatement) astNode, name);
+			if(astNode instanceof MethodInvocation && LoggingStatementFactory.isLoggingStatement((MethodInvocation) astNode)) {
+				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement) astNode, name);
+				return cfgNode;
+			}
+			if(astNode instanceof ClassInstanceCreation) {
+				
+			}
+			if(cfgNode == null || isControlFlowNode(cfgNode)) {
+				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement)astNode, "expressionStatement");
+				return cfgNode;
+			}
+			cfgNode.addASTNode(astNode);
+			return cfgNode;
 		}
 		if(astNode instanceof ReturnStatement) {
-			ASTNodesBlock.reset();
-			return new CFGNodeReturnStatement((ReturnStatement) astNode, name);
+			cfgNode = new CFGNodeReturnStatement((ReturnStatement) astNode, name);
+			return cfgNode;
 		}
-		if(ASTNodesBlock.getCfgNode() == null) {
-			ASTNodesBlock.setCfgNode(new CFGNode(astNode, name));
-			return ASTNodesBlock.getCfgNode();
-		}
-		else {
-			ASTNodesBlock.getCfgNode().addASTNode(astNode);
-			return ASTNodesBlock.getCfgNode();
-		}
+		//Do not group for unknown node types
+		cfgNode = new CFGNode(astNode);
+		return cfgNode;
 	}
 	
+	public static boolean isControlFlowNode(CFGNode cfgNode) {
+		return (cfgNode instanceof CFGNodeEnhancedForStatement || cfgNode instanceof CFGNodeForStatement ||
+				cfgNode instanceof CFGNodeIfStatement || cfgNode instanceof CFGNodeSwitchStatement ||
+				cfgNode instanceof CFGNodeWhileStatement);
+	}
 }

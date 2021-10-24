@@ -6,54 +6,22 @@ import java.util.Set;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.ForStatement;
+import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.Statement;
 
-public class CFGNodeForStatement extends CFGNode{
+public class CFGNodeEnhancedForStatement extends CFGNode{
 	
-	List<CFGNode> initializers;
-	List<CFGNode> updaters; 
 	List<CFGNode> statementsInBody;
 	
-	public CFGNodeForStatement(ForStatement forStatement, String name) {
-		super(forStatement, name);
-		initializers = new ArrayList<>();
-		updaters = new ArrayList<>();
+	public CFGNodeEnhancedForStatement(EnhancedForStatement astNode, String name) {
+		super(astNode, name);
 		statementsInBody = new ArrayList<>();
+		Statement body = astNode.getBody();
 		
-		CFGNode prev = null;
-		for(Object i : forStatement.initializers()) {
-			CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode) i, "initializer");
-			if(prev != null) {
-				prev.makeSequence(current);
-			}
-			//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-			if(prev != current) {
-				initializers.add(current);
-			}
-			prev = current;
-		}
-		
-		prev = null;
-		CFGNodeFactory.reset();
-		for(Object i : forStatement.updaters()) {
-			CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode) i, "updater");
-			if(prev != null) {
-				prev.makeSequence(current);
-			}
-			//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-			if(prev != current) {
-				updaters.add(current);
-			}
-			prev = current;
-		}
-		
-		CFGNodeFactory.reset();
-		Statement body = forStatement.getBody();
-		//for statement with brackets 
-		//e.g. for(1 == 1) { doSomething; }
+		//enhanced for statement with brackets 
+		//e.g. for(boolean[] row : grid) { doSomething; }
 		if(body instanceof Block) {
-			prev = null;
+			CFGNode prev = null;
 			for(Object i : ((Block) body).statements()) {
 				CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode)i);
 				if(prev != null) {
@@ -66,8 +34,8 @@ public class CFGNodeForStatement extends CFGNode{
 				prev = current;
 			}
 		}
-		//for statement with no brackets
-		//e.g. for(1 == 1) doSomething;
+		//enhanced for statement with no brackets
+		//e.g. for(boolean[] row : grid) doSomething;
 		else if(body instanceof Statement) {
 			statementsInBody.add(CFGNodeFactory.makeCFGNode(body));
 		}
@@ -89,20 +57,6 @@ public class CFGNodeForStatement extends CFGNode{
 	public CFGNode getLastStatementInBody() {
 		if(!statementsInBody.isEmpty()) {
 			return statementsInBody.get(statementsInBody.size() - 1);
-		}
-		return null;
-	}
-	
-	public CFGNode getFirstStatementInUpdaters() {
-		if(!updaters.isEmpty()) {
-			return updaters.get(0);
-		}
-		return null;
-	}
-	
-	public CFGNode getLastStatementInUpdaters() {
-		if(!updaters.isEmpty()) {
-			return updaters.get(updaters.size() - 1);
 		}
 		return null;
 	}
