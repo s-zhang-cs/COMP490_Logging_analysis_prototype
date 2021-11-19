@@ -1,1 +1,1 @@
-COMP490 - Personal Summer research project in the topic of static analysis and log analysis. Supervised by Professor Weiyi Shang.
+COMP490 - personal research project in the topic of static analysis and log analysis at Concordia University, beginning at Summer 2021 and continued during Fall 2021 on a part-time basis. Supervised by Professor Weiyi Shang.

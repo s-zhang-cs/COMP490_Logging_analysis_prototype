@@ -1,5 +1,5 @@
 package comp490.cfgs;
 
 public class Config {
-	public static String DOTFILEPATH = <your output file path here>;
+	public static String DOTFILEPATH = "C:\\Users\\shuo_\\OneDrive\\Desktop\\COMP490TestResults\\";
 }

@@ -1,6 +1,7 @@
 package comp490.cfgs;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -9,6 +10,8 @@ import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SwitchCase;
+import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
@@ -51,6 +54,18 @@ public class CFGNodeFactory {
 		}
 		if(astNode instanceof WhileStatement) {
 			cfgNode = new CFGNodeWhileStatement((WhileStatement) astNode, "whileStatement");
+			return cfgNode;
+		}
+		if(astNode instanceof SwitchStatement) {
+			cfgNode = new CFGNodeSwitchStatement((SwitchStatement) astNode, "switchStatement");
+			return cfgNode;
+		}
+		if(astNode instanceof SwitchCase) {
+			cfgNode = new CFGNodeSwitchCase((SwitchCase) astNode, "switchCase");
+			return cfgNode;
+		}
+		if(astNode instanceof BreakStatement) {
+			cfgNode = new CFGNodeBreakStatement((BreakStatement) astNode, "breakStatement");
 			return cfgNode;
 		}
 		//expression statements will be grouped with other non-control-flow nodes, unless if it is a logging statement
@@ -108,6 +123,18 @@ public class CFGNodeFactory {
 			cfgNode = new CFGNodeWhileStatement((WhileStatement) astNode, name);
 			return cfgNode;
 		}
+		if(astNode instanceof SwitchStatement) {
+			cfgNode = new CFGNodeSwitchStatement((SwitchStatement) astNode, name);
+			return cfgNode;
+		}
+		if(astNode instanceof SwitchCase) {
+			cfgNode = new CFGNodeSwitchCase((SwitchCase) astNode, name);
+			return cfgNode;
+		}
+		if(astNode instanceof BreakStatement) {
+			cfgNode = new CFGNodeBreakStatement((BreakStatement) astNode, name);
+			return cfgNode;
+		}
 		//expression statements will be grouped with other non-control-flow nodes, unless if it is a logging statement
 		if(astNode instanceof ExpressionStatement) {
 			if(astNode instanceof MethodInvocation && LoggingStatementFactory.isLoggingStatement((MethodInvocation) astNode)) {
@@ -136,6 +163,6 @@ public class CFGNodeFactory {
 	public static boolean isControlFlowNode(CFGNode cfgNode) {
 		return (cfgNode instanceof CFGNodeEnhancedForStatement || cfgNode instanceof CFGNodeForStatement ||
 				cfgNode instanceof CFGNodeIfStatement || cfgNode instanceof CFGNodeSwitchStatement ||
-				cfgNode instanceof CFGNodeWhileStatement);
+				cfgNode instanceof CFGNodeWhileStatement || cfgNode instanceof CFGNodeSwitchCase);
 	}
 }
