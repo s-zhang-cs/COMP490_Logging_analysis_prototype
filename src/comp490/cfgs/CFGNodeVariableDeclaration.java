@@ -6,7 +6,14 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
+/**
+ * Control flow node for variable declarations
+ * special cases:
+ *  - variable is the return value of a method 
+ *  - variable is a class instantiation
+ */
 public class CFGNodeVariableDeclaration extends CFGNode{
+	String variableName;
 	private MethodInvocation methodInvocation;
 	private ClassInstanceCreation classInstanceCreation;
 	
@@ -23,7 +30,7 @@ public class CFGNodeVariableDeclaration extends CFGNode{
 				break;
 			}
 		}
-		
+			
 	}
 	
 	public MethodInvocation getMethodInvocation() {
@@ -33,14 +40,5 @@ public class CFGNodeVariableDeclaration extends CFGNode{
 	public ClassInstanceCreation getClassInstanceCreation() {
 		return classInstanceCreation;
 	}
-	
-	public String toString() {
-		if(methodInvocation != null) {
-			return name + "_" + methodInvocation.getName().getIdentifier() + "_" + lineNbr;
-		}
-		if(classInstanceCreation != null) {
-			return name + "_" + classInstanceCreation.resolveConstructorBinding().getName() + "_" + lineNbr;
-		}
-		return super.toString();
-	}
+
 }

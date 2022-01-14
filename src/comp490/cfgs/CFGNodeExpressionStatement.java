@@ -3,6 +3,10 @@ package comp490.cfgs;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
+/**
+ * Control flow node for method invocations (JDT classifies them under ExpressionStatement).
+ *
+ */
 public class CFGNodeExpressionStatement extends CFGNode{
 	private MethodInvocation methodInvocation;
 	
@@ -23,5 +27,4 @@ public class CFGNodeExpressionStatement extends CFGNode{
 		}
 		return super.toString();
 	}
-	
 }

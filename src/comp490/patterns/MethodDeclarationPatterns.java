@@ -4,40 +4,15 @@ import org.eclipse.jdt.core.ICompilationUnit;
 
 import comp490.cfgs.MethodCFG;
 import comp490.handlers.JavaModel;
-import comp490.visitors.LoggingMethodDeclarationVisitor;
 import comp490.visitors.MethodCFGVisitor;
-import comp490.visitors.MethodDeclarationVisitor;
-import comp490.visitors.SearchMethodDeclarationVisitor;
 
 public class MethodDeclarationPatterns {
 
-	public int countNbrOfMethods() {
-		MethodDeclarationVisitor methodVisitor = new MethodDeclarationVisitor();
-		for(ICompilationUnit iCompilationUnit : JavaModel.getICompilationUnits()) {
-			org.eclipse.jdt.core.dom.CompilationUnit compilationUnit = JavaModel.parse(iCompilationUnit);
-			compilationUnit.accept(methodVisitor);
-		}
-		return methodVisitor.getMethodCount();
-	}
-	
-	public int countNbrOfMethods(String methodName) {
-		SearchMethodDeclarationVisitor searchMethodDeclarationVisitor = new SearchMethodDeclarationVisitor(methodName);
-		for(ICompilationUnit iCompilationUnit : JavaModel.getICompilationUnits()) {
-			org.eclipse.jdt.core.dom.CompilationUnit compilationUnit = JavaModel.parse(iCompilationUnit);
-			compilationUnit.accept(searchMethodDeclarationVisitor);
-		}
-		return searchMethodDeclarationVisitor.getMethodCount();
-	}
-	
-	public int countNbrOfLoggingMethods() {
-		LoggingMethodDeclarationVisitor loggingMethodDeclarationVisitor = new LoggingMethodDeclarationVisitor();
-		for(ICompilationUnit iCompilationUnit : JavaModel.getICompilationUnits()) {
-			org.eclipse.jdt.core.dom.CompilationUnit compilationUnit = JavaModel.parse(iCompilationUnit);
-			compilationUnit.accept(loggingMethodDeclarationVisitor);
-		}
-		return loggingMethodDeclarationVisitor.getMethodCount();
-	}
-	
+	/**
+	 * Make a control flow graph of dot format for each method in the AST.
+	 * 
+	 * The location of the resulting dot files is specified under "Config.java" under package "comp490.cfgs"
+	 */
 	public void extractCFG() {
 		MethodCFGVisitor methodCFGVisitor = new MethodCFGVisitor();
 		for(ICompilationUnit iCompilationUnit : JavaModel.getICompilationUnits()) {

@@ -5,23 +5,37 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
 
-import comp490.handlers.JavaModel;
-
+/**
+ * Base Control flow node, parent of more specific control flow nodes
+ *
+ */
 public class CFGNode {
 	
+	/**
+	 * Line number of the control flow node
+	 */
 	protected int lineNbr;
+	/**
+	 * Name (or type by default) of the control flow node
+	 */
 	protected String name;
 	
-	//all the ASTNodes encompassed within the CFGNode (eg. a sequence of expression statements)
+	/**
+	 * Associated ASTNode(s) of the control flow node
+	 */
 	List<ASTNode> ASTNodes;
-	//all the edges of the adjacency list associated with this CFGNode. (eg. ifExpression points to thenStatement and elsestatement in case of an 'if else')
+	/**
+	 * Control flow graph using adjacency list 
+	 */
 	List<CFGNode> CFGNodes;
 	
+	/**
+	 * Constructor using type of ASTNode as CFGNode's name
+	 * 
+	 * @param astNode source ASTNode
+	 */
 	public CFGNode(ASTNode astNode) {
 		lineNbr = ((CompilationUnit) astNode.getRoot()).getLineNumber(astNode.getStartPosition());
 		this.name = "Type" + astNode.getNodeType();
@@ -30,17 +44,18 @@ public class CFGNode {
 		ASTNodes.add(astNode);
 	}
 	
+	/**
+	 * Constructor using custom name
+	 * 
+	 * @param astNode source ASTNode
+	 * @param name custom name of the CFGNode
+	 */
 	public CFGNode(ASTNode astNode, String name) {
 		lineNbr = ((CompilationUnit) astNode.getRoot()).getLineNumber(astNode.getStartPosition());
 		this.name = name;
 		ASTNodes = new ArrayList<>();
 		CFGNodes = new ArrayList<>();
 		ASTNodes.add(astNode);
-	}
-	
-	//copy constructor
-	public CFGNode(CFGNode source) {
-		
 	}
 
 	public int getLineNbr() {
@@ -67,19 +82,26 @@ public class CFGNode {
 		CFGNodes.add(cfgNode);
 	}
 
-	//to be overwritten in subclasses
+	/**
+	 * add a Control flow node to be adjacent to the current control flow node
+	 * 
+	 * @param cfgNode node adjacent to current node
+	 */
 	public void makeSequence(CFGNode cfgNode) {
-		if(cfgNode != this) {
-			addCFGNode(cfgNode);
-		}
+		addCFGNode(cfgNode);
 	}
 	
-	//to be overwritten in subclasses
 	@Override
 	public String toString() {
 		return name + "_" + lineNbr;
 	}
 	
+	/**
+	 * Create a dot format String for the current control flow node's graph
+	 * 
+	 * @param traversed set keeping track of visited nodes to avoid infinite loop
+	 * @return a String of dot format containing graph information
+	 */
 	public String makeDot(Set<CFGNode> traversed) {
 		if(traversed.contains(this)) {
 			return "";
@@ -91,71 +113,6 @@ public class CFGNode {
 		}
 		for(CFGNode cfgNode : CFGNodes) {
 			str += cfgNode.makeDot(traversed);
-		}
-		return str;
-	}
-	
-	public String linkICFG(Set<CFGNode> traversed) {
-		if(traversed.contains(this)) {
-			return "";
-		}
-		traversed.add(this);
-		String str = "";
-		for(CFGNode cfgNode : CFGNodes) {
-			//direct method calls 
-			if(cfgNode instanceof CFGNodeExpressionStatement && ((CFGNodeExpressionStatement)cfgNode).getMethodInvocation() != null) {
-				MethodInvocation methodInvocation = ((CFGNodeExpressionStatement)cfgNode).getMethodInvocation();
-				MethodDeclaration methodDeclaration = JavaModel.getMethodDeclarationFromMethodInvocation(methodInvocation);
-				//external methods
-				if(methodDeclaration == null) {
-					//do nothing, as they don't belong in the source code we analyze
-				}
-				else {
-					MethodCFG methodCFG = new MethodCFG(methodDeclaration);
-					methodCFG.extractMethodCFG();
-					str += cfgNode.toString() + " -> " + methodCFG.getRoot().toString() + "\n";
-					str += methodCFG.getRootLastStatement().toString() + " -> " + cfgNode.toString() + "\n";
-				}
-			}
-			//variable declaration from methods 
-			else if(cfgNode instanceof CFGNodeVariableDeclaration && ((CFGNodeVariableDeclaration)cfgNode).getMethodInvocation() != null) {
-				MethodInvocation methodInvocation = ((CFGNodeVariableDeclaration)cfgNode).getMethodInvocation();
-				MethodDeclaration methodDeclaration = JavaModel.getMethodDeclarationFromMethodInvocation(methodInvocation);
-				//external methods
-				if(methodDeclaration == null) {
-					//do nothing, as they don't belong in the source code we analyze
-				}
-				else {
-					MethodCFG methodCFG = new MethodCFG(methodDeclaration);
-					methodCFG.extractMethodCFG();
-					str += cfgNode.toString() + " -> " + methodCFG.getRoot().toString() + "\n";
-					str += methodCFG.getRootLastStatement().toString() + " -> " + cfgNode.toString() + "\n";
-				}
-			}
-			//variable declaration from constructors
-			else if(cfgNode instanceof CFGNodeVariableDeclaration && ((CFGNodeVariableDeclaration)cfgNode).getClassInstanceCreation() != null) {
-				ClassInstanceCreation classInstanceCreation = ((CFGNodeVariableDeclaration)cfgNode).getClassInstanceCreation();
-				MethodDeclaration methodDeclaration = JavaModel.getConstructorMethodFromClassInstantiation(classInstanceCreation);
-				//compiler generated default constructor
-				if(methodDeclaration == null) {
-					//do nothing here, it is handled inside default constructor class from javaModel
-				}
-				else {
-					//still need to complete:
-					// - find all the class instantiations within the parent class outside of constructors
-					// - point to (first statement of) first class instantiation
-					// - link all subsequent class instantiations 
-					// - point from last statement of last class instantiation to first explicit statement in the constructor
-					MethodCFG methodCFG = new MethodCFG(methodDeclaration);
-					methodCFG.extractMethodCFG();
-					str += cfgNode.toString() + " -> " + methodCFG.getRoot().toString() + "\n";
-					str += methodCFG.getRootLastStatement().toString() + " -> " + cfgNode.toString() + "\n";
-				}
-			}
-			
-		}
-		for(CFGNode cfgNode : CFGNodes) {
-			str += cfgNode.linkICFG(traversed);
 		}
 		return str;
 	}

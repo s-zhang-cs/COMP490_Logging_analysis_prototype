@@ -2,164 +2,104 @@ package comp490.cfgs;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BreakStatement;
-import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
-import comp490.logs.LoggingStatementFactory;
-
+/**
+ * Factory pattern used to generate control flow node based on the ASTNode 
+ * provided by JDT parser
+ *
+ */
 public class CFGNodeFactory {
-	
-	//this CFGNode groups sequential ASTNodes in the control flow into one CFGNode, in order to avoid polluting the CFG.
-	private static CFGNode cfgNode;
-	
-	public static void reset() {
-		cfgNode = null;
-	}
 	
 	public static CFGNode makeCFGNode(ASTNode astNode) {
 		if(astNode instanceof MethodDeclaration) {
-			cfgNode = new CFGNodeMethodDeclaration((MethodDeclaration) astNode, "methodDeclaration");
-			return cfgNode;
+			return new CFGNodeMethodDeclaration((MethodDeclaration) astNode, "methodDeclaration");
 		}
-		//variable declarations will be grouped with other non-control-flow nodes
 		if(astNode instanceof VariableDeclarationStatement) {
-			if(cfgNode == null || isControlFlowNode(cfgNode)) {
-				cfgNode = new CFGNodeVariableDeclaration((VariableDeclarationStatement)astNode, "variableDeclaration");
-				return cfgNode;
-			}
-			cfgNode.addASTNode(astNode);
-			return cfgNode;
+			return new CFGNodeVariableDeclaration((VariableDeclarationStatement)astNode, "variableDeclaration");
 		}
 		if(astNode instanceof IfStatement) {
-			cfgNode = new CFGNodeIfStatement((IfStatement) astNode, "ifStatement");
-			return cfgNode;
+			return new CFGNodeIfStatement((IfStatement) astNode, "ifStatement");
 		}
 		if(astNode instanceof ForStatement) {
-			cfgNode = new CFGNodeForStatement((ForStatement) astNode, "forStatement");
-			return cfgNode;
+			return new CFGNodeForStatement((ForStatement) astNode, "forStatement");
 		}
 		if(astNode instanceof EnhancedForStatement) {
-			cfgNode = new CFGNodeEnhancedForStatement((EnhancedForStatement)astNode, "enhancedForStatement");
-			return cfgNode;
+			return new CFGNodeEnhancedForStatement((EnhancedForStatement)astNode, "enhancedForStatement");
 		}
 		if(astNode instanceof WhileStatement) {
-			cfgNode = new CFGNodeWhileStatement((WhileStatement) astNode, "whileStatement");
-			return cfgNode;
+			return new CFGNodeWhileStatement((WhileStatement) astNode, "whileStatement");
 		}
 		if(astNode instanceof SwitchStatement) {
-			cfgNode = new CFGNodeSwitchStatement((SwitchStatement) astNode, "switchStatement");
-			return cfgNode;
+			return new CFGNodeSwitchStatement((SwitchStatement) astNode, "switchStatement");
 		}
 		if(astNode instanceof SwitchCase) {
-			cfgNode = new CFGNodeSwitchCase((SwitchCase) astNode, "switchCase");
-			return cfgNode;
+			return new CFGNodeSwitchCase((SwitchCase) astNode, "switchCase");
 		}
 		if(astNode instanceof BreakStatement) {
-			cfgNode = new CFGNodeBreakStatement((BreakStatement) astNode, "breakStatement");
-			return cfgNode;
+			return new CFGNodeBreakStatement((BreakStatement) astNode, "breakStatement");
 		}
-		//expression statements will be grouped with other non-control-flow nodes, unless if it is a logging statement
 		if(astNode instanceof ExpressionStatement) {
-			if(astNode instanceof MethodInvocation && LoggingStatementFactory.isLoggingStatement((MethodInvocation) astNode)) {
-				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement) astNode, "ExpressionStatement");
-				return cfgNode;
-			}
-			if(astNode instanceof ClassInstanceCreation) {
-				
-			}
-			if(cfgNode == null || isControlFlowNode(cfgNode)) {
-				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement)astNode, "expressionStatement");
-				return cfgNode;
-			}
-			cfgNode.addASTNode(astNode);
-			return cfgNode;
+			return new CFGNodeExpressionStatement((ExpressionStatement) astNode, "expressionStatement");
 		}
 		if(astNode instanceof ReturnStatement) {
-			cfgNode = new CFGNodeReturnStatement((ReturnStatement) astNode, "ReturnStatement");
-			return cfgNode;
+			return new CFGNodeReturnStatement((ReturnStatement) astNode, "ReturnStatement");
 		}
-		//Do not group for unknown node types
-		cfgNode = new CFGNode(astNode);
-		return cfgNode;
+		return new CFGNode(astNode);
 	}
 	
 	public static CFGNode makeCFGNode(ASTNode astNode, String name) {
 		if(astNode instanceof MethodDeclaration) {
-			cfgNode = new CFGNodeMethodDeclaration((MethodDeclaration) astNode, name);
-			return cfgNode;
+			return new CFGNodeMethodDeclaration((MethodDeclaration) astNode, name);
 		}
-		//variable declarations will be grouped with other non-control-flow nodes
 		if(astNode instanceof VariableDeclarationStatement) {
-			if(cfgNode == null || isControlFlowNode(cfgNode)) {
-				cfgNode = new CFGNodeVariableDeclaration((VariableDeclarationStatement)astNode, "variableDeclaration");
-				return cfgNode;
-			}
-			cfgNode.addASTNode(astNode);
-			return cfgNode;
+			return new CFGNodeVariableDeclaration((VariableDeclarationStatement)astNode, "variableDeclaration");
 		}
 		if(astNode instanceof IfStatement) {
-			cfgNode = new CFGNodeIfStatement((IfStatement) astNode, name);
-			return cfgNode;
+			return new CFGNodeIfStatement((IfStatement) astNode, name);
 		}
 		if(astNode instanceof ForStatement) {
-			cfgNode = new CFGNodeForStatement((ForStatement) astNode, name);
-			return cfgNode;
+			return new CFGNodeForStatement((ForStatement) astNode, name);
 		}
 		if(astNode instanceof EnhancedForStatement) {
-			cfgNode = new CFGNodeEnhancedForStatement((EnhancedForStatement)astNode, name);
-			return cfgNode;
+			return new CFGNodeEnhancedForStatement((EnhancedForStatement)astNode, name);
 		}
 		if(astNode instanceof WhileStatement) {
-			cfgNode = new CFGNodeWhileStatement((WhileStatement) astNode, name);
-			return cfgNode;
+			return new CFGNodeWhileStatement((WhileStatement) astNode, name);
 		}
 		if(astNode instanceof SwitchStatement) {
-			cfgNode = new CFGNodeSwitchStatement((SwitchStatement) astNode, name);
-			return cfgNode;
+			return new CFGNodeSwitchStatement((SwitchStatement) astNode, name);
 		}
 		if(astNode instanceof SwitchCase) {
-			cfgNode = new CFGNodeSwitchCase((SwitchCase) astNode, name);
-			return cfgNode;
+			return new CFGNodeSwitchCase((SwitchCase) astNode, name);
 		}
 		if(astNode instanceof BreakStatement) {
-			cfgNode = new CFGNodeBreakStatement((BreakStatement) astNode, name);
-			return cfgNode;
+			return new CFGNodeBreakStatement((BreakStatement) astNode, name);
 		}
-		//expression statements will be grouped with other non-control-flow nodes, unless if it is a logging statement
 		if(astNode instanceof ExpressionStatement) {
-			if(astNode instanceof MethodInvocation && LoggingStatementFactory.isLoggingStatement((MethodInvocation) astNode)) {
-				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement) astNode, name);
-				return cfgNode;
-			}
-			if(astNode instanceof ClassInstanceCreation) {
-				
-			}
-			if(cfgNode == null || isControlFlowNode(cfgNode)) {
-				cfgNode = new CFGNodeExpressionStatement((ExpressionStatement)astNode, "expressionStatement");
-				return cfgNode;
-			}
-			cfgNode.addASTNode(astNode);
-			return cfgNode;
+			return new CFGNodeExpressionStatement((ExpressionStatement) astNode, name);
 		}
 		if(astNode instanceof ReturnStatement) {
-			cfgNode = new CFGNodeReturnStatement((ReturnStatement) astNode, name);
-			return cfgNode;
+			return new CFGNodeReturnStatement((ReturnStatement) astNode, name);
 		}
-		//Do not group for unknown node types
-		cfgNode = new CFGNode(astNode);
-		return cfgNode;
+		return new CFGNode(astNode);
 	}
 	
+	/**
+	 * Determine whether a cfgNode is a control flow node such as if statement, for loop, etc.
+	 * 
+	 * @param cfgNode cfgNode to determine if it is control flow node
+	 * @return boolean true if it is control flow node, false otherwise
+	 */
 	public static boolean isControlFlowNode(CFGNode cfgNode) {
 		return (cfgNode instanceof CFGNodeEnhancedForStatement || cfgNode instanceof CFGNodeForStatement ||
 				cfgNode instanceof CFGNodeIfStatement || cfgNode instanceof CFGNodeSwitchStatement ||

@@ -9,6 +9,10 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.Statement;
 
+/**
+ * Control flow node for for statement 
+ *
+ */
 public class CFGNodeForStatement extends CFGNode{
 	
 	List<CFGNode> initializers;
@@ -27,28 +31,20 @@ public class CFGNodeForStatement extends CFGNode{
 			if(prev != null) {
 				prev.makeSequence(current);
 			}
-			//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-			if(prev != current) {
-				initializers.add(current);
-			}
+			initializers.add(current);
 			prev = current;
 		}
 		
 		prev = null;
-		CFGNodeFactory.reset();
 		for(Object i : forStatement.updaters()) {
 			CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode) i, "updater");
 			if(prev != null) {
 				prev.makeSequence(current);
 			}
-			//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-			if(prev != current) {
-				updaters.add(current);
-			}
+			updaters.add(current);
 			prev = current;
 		}
 		
-		CFGNodeFactory.reset();
 		Statement body = forStatement.getBody();
 		//for statement with brackets 
 		//e.g. for(1 == 1) { doSomething; }
@@ -59,10 +55,7 @@ public class CFGNodeForStatement extends CFGNode{
 				if(prev != null) {
 					prev.makeSequence(current);
 				}
-				//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-				if(prev != current) {
-					statementsInBody.add(current);
-				}
+				statementsInBody.add(current);
 				prev = current;
 			}
 		}
@@ -75,8 +68,6 @@ public class CFGNodeForStatement extends CFGNode{
 		if(getLastStatementInBody() != null) {
 			getLastStatementInBody().makeSequence(this);
 		}
-		
-		CFGNodeFactory.reset();
 	}
 	
 	public CFGNode getFirstStatementInBody() {
@@ -108,22 +99,18 @@ public class CFGNodeForStatement extends CFGNode{
 	}
 	
 	@Override
-	public void makeSequence(CFGNode cfgNode) {
-		if(cfgNode != this) {
-			addCFGNode(cfgNode);
-		}
-	}
-	
-	@Override
 	public String makeDot(Set<CFGNode> traversed) {
 		if(traversed.contains(this)) {
 			return "";
 		}
 		traversed.add(this);
 		String str = "";
+		//add edge to following statement outside of for loop
 		if(CFGNodes.size() != 0) {
 			str += this.toString() + " -> " + CFGNodes.get(0).toString() + "\n";
+			str += CFGNodes.get(0).makeDot(traversed);
 		}
+		//add edge to first statement inside of for loop
 		if(getFirstStatementInBody() != null) {
 			str += this.toString() + " -> " + getFirstStatementInBody().toString() + "\n";
 		}

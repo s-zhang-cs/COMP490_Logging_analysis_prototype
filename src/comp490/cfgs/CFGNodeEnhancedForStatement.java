@@ -9,6 +9,11 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.Statement;
 
+/**
+ * Control flow node for enhanced for loops 
+ * e.g. for(String a : arr) { } (arr is an array of Strings)
+ *
+ */
 public class CFGNodeEnhancedForStatement extends CFGNode{
 	
 	List<CFGNode> statementsInBody;
@@ -44,7 +49,6 @@ public class CFGNodeEnhancedForStatement extends CFGNode{
 			getLastStatementInBody().makeSequence(this);
 		}
 		
-		CFGNodeFactory.reset();
 	}
 	
 	public CFGNode getFirstStatementInBody() {
@@ -77,6 +81,7 @@ public class CFGNodeEnhancedForStatement extends CFGNode{
 		String str = "";
 		if(CFGNodes.size() != 0) {
 			str += this.toString() + " -> " + CFGNodes.get(0).toString() + "\n";
+			str += CFGNodes.get(0).makeDot(traversed);
 		}
 		if(getFirstStatementInBody() != null) {
 			str += this.toString() + " -> " + getFirstStatementInBody().toString() + "\n";

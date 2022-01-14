@@ -3,7 +3,6 @@ package comp490.handlers;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
@@ -12,14 +11,17 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 import comp490.patterns.MethodDeclarationPatterns;
 import comp490.patterns.MethodInvocationPatterns;
-import comp490.patterns.TypeDeclarationPatterns;
 
 public class SampleHandler extends AbstractHandler {
 
 	public static final String CONSOLE_NAME = "COMP490";
 	private static MessageConsole myConsole;
 	private static MessageConsoleStream out;
-
+	
+	/**
+	 * Entry point of the plug-in application. By clicking on the plug-in icon, the following
+	 * code will be first executed.
+	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		
@@ -28,46 +30,24 @@ public class SampleHandler extends AbstractHandler {
 		
 		SampleHandler.printMessage("~~~~~~~~~~~~~~~~~~~~~~~~~~~ start~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-		TypeDeclarationPatterns typeDeclarationPatterns = new TypeDeclarationPatterns();
-		SampleHandler.printMessage("Nbr of classes: " + typeDeclarationPatterns.countNbrOfClasses());
-		SampleHandler.printMessage("Nbr of interfaces: " + typeDeclarationPatterns.countNbrOfInterfaces());
-		
 		MethodDeclarationPatterns methodDeclarationPatterns = new MethodDeclarationPatterns();
 		methodDeclarationPatterns.extractCFG();
-//		SampleHandler.printMessage("Nbr of methods: " + methodDeclarationPatterns.countNbrOfMethods());
-//		SampleHandler.printMessage("Nbr of logging methods: " + methodDeclarationPatterns.countNbrOfLoggingMethods());
-//		SampleHandler.printMessage("Nbr of searched methods: " + methodDeclarationPatterns.countNbrOfMethods("asdf"));
-//		
-//		MethodInvocationPatterns methodInvocationPatterns = new MethodInvocationPatterns();
-//		methodInvocationPatterns.extractCG(null, null, "logMessage");
-//		methodInvocationPatterns.extractICFG(null, null, "logMessage");
-//		SampleHandler.printMessage("Nbr of method invocations: " + methodInvocationPatterns.countNbrOfMethodInvocations());
-//		SampleHandler.printMessage("Nbr of logging method invocations: " + methodInvocationPatterns.countNbrOfLoggingMethodInvocations());
-//		SampleHandler.printMessage("Nbr of searched method invocations: " + methodInvocationPatterns.countNbrOfMethodInvocations("asdf"));
-//		
-//		SampleHandler.printMessage("All the logging method declarations: ");
-//		for(JavaModel.LoggingMethod i : JavaModel.getLoggingMethods()) {
-//			SampleHandler.printMessage("method: " + i.getMethod().toString());
-//			SampleHandler.printMessage("method line: " + i.getLineNbr());
-//			SampleHandler.printMessage("method class: " + ((TypeDeclaration)i.getParentClass()).getName().getIdentifier());
-//			SampleHandler.printMessage("method package: " + i.getParentPackage().toString());
-//			SampleHandler.printMessage("============================================================");
-//		}
-//		
-//		SampleHandler.printMessage("All the logging method invocations: ");
-//		for(JavaModel.LoggingMethod i : JavaModel.getLoggingMethodInvocations()) {
-//			SampleHandler.printMessage("method: " + i.getMethod().toString());
-//			SampleHandler.printMessage("method line: " + i.getLineNbr());
-//			SampleHandler.printMessage("method class: " + ((TypeDeclaration)i.getParentClass()).getName().getIdentifier());
-//			SampleHandler.printMessage("method package: " + i.getParentPackage().toString());
-//			SampleHandler.printMessage("============================================================");
-//		}
-//		
+		
+		MethodInvocationPatterns methodInvocationPatterns = new MethodInvocationPatterns();
+		int numLoggingMethods = methodInvocationPatterns.countNbrOfLoggingMethodInvocations();
+		SampleHandler.printMessage("number of logging methods: " + numLoggingMethods);
+		methodInvocationPatterns.extractCG();
 
 		SampleHandler.printMessage("~~~~~~~~~~~~~~~~~~~~~~~~~~~finish~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		return null;
 	}
 	
+	/**
+	 * Create (or return an existing) MessageConsole object 
+	 * 
+	 * @param name name of MessageConsole
+	 * @return MessageConsole
+	 */
 	private MessageConsole findConsole(String name) {
 		ConsolePlugin plugin = ConsolePlugin.getDefault();
 		IConsoleManager conMan = plugin.getConsoleManager();
@@ -86,6 +66,11 @@ public class SampleHandler extends AbstractHandler {
 		return myConsole;
 	}
 
+	/**
+	 * Print text message to console 
+	 * 	
+	 * @param string message to be printed
+	 */
 	public static void printMessage(String string) {
 		out.println(string);
 	}

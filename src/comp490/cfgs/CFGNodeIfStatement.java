@@ -9,6 +9,10 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
 
+/**
+ * Control flow node for if statement 
+ *
+ */
 public class CFGNodeIfStatement extends CFGNode{
 	
 	private List<CFGNode> statementsInThenBlock;
@@ -27,23 +31,18 @@ public class CFGNodeIfStatement extends CFGNode{
 		//if statements with brackets:
 		//e.g. if(1 == 1) { doSomething; }
 		if(thenStatement instanceof Block){
-			CFGNodeFactory.reset();
 			for(Object i : ((Block)thenStatement).statements()) {
 				CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode)i);
 				if(prev != null) {
 					prev.makeSequence(current);
 				}
-				//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-				if(prev != current) {
-					statementsInThenBlock.add(current);
-				}
+				statementsInThenBlock.add(current);
 				prev = current;
 			}
 		}
 		//if statements with no brackets:
 		//e.g. if(1 == 1) doSomething;
 		else if(thenStatement instanceof Statement) {
-			CFGNodeFactory.reset();
 			CFGNode cfgNode = CFGNodeFactory.makeCFGNode(thenStatement);
 			statementsInThenBlock.add(cfgNode);
 		}
@@ -52,39 +51,32 @@ public class CFGNodeIfStatement extends CFGNode{
 		//in case of "else" with brackets:
 		//e.g. else { doSomething; }
 		if(elseStatement instanceof Block) {
-			CFGNodeFactory.reset();
 			for(Object i : ((Block)elseStatement).statements()) {
 				CFGNode current = CFGNodeFactory.makeCFGNode((ASTNode)i);
 				if(prev != null) {
 					prev.makeSequence(current);
 				}
-				//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-				if(prev != current) {
-					statementsInElseBlock.add(current);
-				}
+				statementsInElseBlock.add(current);
 				prev = current;
 			}
 		}
 		//in case of "else if"
 		//e.g. else if { doSomething; }
 		else if(elseStatement instanceof IfStatement) {
-			CFGNodeFactory.reset();
 			CFGNode cfgNode = CFGNodeFactory.makeCFGNode(elseStatement, "ifStatement");
 			statementsInElseBlock.add(cfgNode);
 		}
 		//in case of "else" with no brackets:
 		//e.g. else doSomething;
 		else if(elseStatement instanceof Statement) {
-			CFGNodeFactory.reset();
 			CFGNode cfgNode = CFGNodeFactory.makeCFGNode(elseStatement);
 			statementsInElseBlock.add(cfgNode);
 		}
 		//in case of "if" only (no "else")
+		//add dummy empty else statement
 		else if(elseStatement == null) {
 			statementsInElseBlock.add(new CFGNode(astNode, "emptyElseStatement"));
 		}
-		
-		CFGNodeFactory.reset();
 	}
 	
 	public List<CFGNode> getStatementsInThenBlock() {
@@ -96,28 +88,28 @@ public class CFGNodeIfStatement extends CFGNode{
 	}
 
 	public CFGNode getFirstStatementInThenBlock() {
-		if(statementsInThenBlock.size() != 0) {
+		if(!statementsInThenBlock.isEmpty()) {
 			return statementsInThenBlock.get(0);
 		}
 		return null;
 	}
 
 	public CFGNode getLastStatementInThenBlock() {
-		if(statementsInThenBlock.size() != 0) {
+		if(!statementsInThenBlock.isEmpty()) {
 			return statementsInThenBlock.get(statementsInThenBlock.size() - 1);
 		}
 		return null;
 	}
 
 	public CFGNode getFirstStatementInElseBlock() {
-		if(statementsInElseBlock.size() != 0) {
+		if(!statementsInElseBlock.isEmpty()) {
 			return statementsInElseBlock.get(0);
 		}
 		return null;
 	}
 
 	public CFGNode getLastStatementInElseBlock() {
-		if(statementsInElseBlock.size() != 0) {
+		if(!statementsInElseBlock.isEmpty()) {
 			return statementsInElseBlock.get(statementsInElseBlock.size() - 1);
 		}
 		return null;

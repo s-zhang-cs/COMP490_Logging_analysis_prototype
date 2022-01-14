@@ -9,6 +9,10 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
+/**
+ * Control flow node for while statement 
+ *
+ */
 public class CFGNodeWhileStatement extends CFGNode{
 	List<CFGNode> statementsInBody;
 	
@@ -24,10 +28,7 @@ public class CFGNodeWhileStatement extends CFGNode{
 				if(prev != null) {
 					prev.makeSequence(current);
 				}
-				//this check is needed due to CFGNodeFactory's automatic grouping of sequential statements
-				if(prev != current) {
-					statementsInBody.add(current);
-				}
+				statementsInBody.add(current);
 				prev = current;
 			}
 		}
@@ -39,46 +40,39 @@ public class CFGNodeWhileStatement extends CFGNode{
 		if(getLastStatementInBody() != null) {
 			getLastStatementInBody().makeSequence(this);
 		}
-		
-		CFGNodeFactory.reset();
 	}
 	
 	public CFGNode getFirstStatementInBody() {
-		if(statementsInBody.size() != 0) {
+		if(!statementsInBody.isEmpty()) {
 			return statementsInBody.get(0);
 		}
 		return null;
 	}
 
 	public CFGNode getLastStatementInBody() {
-		if(statementsInBody.size() != 0) {
+		if(!statementsInBody.isEmpty()) {
 			return statementsInBody.get(statementsInBody.size() - 1);
 		}
 		return null;
 	}
 	
 	@Override
-	public void makeSequence(CFGNode cfgNode) {
-		addCFGNode(cfgNode);
-		if(getLastStatementInBody() != null) {
-			getLastStatementInBody().makeSequence(cfgNode);
-		}
-	}
-	
-	@Override
 	public String makeDot(Set<CFGNode> traversed) {
-		String str = "";
-		if(CFGNodes.size() != 0) {
-			str += this.toString() + " -> " + CFGNodes.get(0).toString() + "\n";
+		if(traversed.contains(this)) {
+			return "";
 		}
+		traversed.add(this);
+		String str = "";
+		// add edge to next statement (outside of while loop)
+		if(!CFGNodes.isEmpty()) {
+			str += this.toString() + " -> " + CFGNodes.get(0).toString() + "\n";
+			str += CFGNodes.get(0).makeDot(traversed);
+		}
+		// add edge to first statement (inside of while loop)
 		if(getFirstStatementInBody() != null) {
 			str += this.toString() + " -> " + getFirstStatementInBody().toString() + "\n";
 		}
 		for(CFGNode i : statementsInBody) {
-			if(traversed.contains(i)) {
-				continue;
-			}
-			traversed.add(i);
 			str += i.makeDot(traversed);
 		}
 		return str;

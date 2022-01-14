@@ -13,34 +13,29 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
-import comp490.handlers.JavaModel.DefaultConstructor;
-
+/**
+ * Wrapper class for CFGNode. It allows to create a control flow graph 
+ * for the method declaration itself, and output it as a dot file
+ *
+ */
 public class MethodCFG {
 	
 	private CFGNodeMethodDeclaration root;
-	private DefaultConstructor rootConstructor;
 	private CFGNode rootFirstStatement;
 	private CFGNode rootLastStatement;
 	private List<CFGNode> rootReturnStatements;
 	
 	public MethodCFG(MethodDeclaration node) {
-		CFGNodeFactory.reset();
 		root = new CFGNodeMethodDeclaration(node);
 		rootReturnStatements = new ArrayList<>();
 	}
 	
 	public MethodCFG(TypeDeclaration node) {
-		CFGNodeFactory.reset();
-		rootConstructor = new DefaultConstructor(node);
 		rootReturnStatements = new ArrayList<>();
 	}
 	
 	public CFGNode getRoot() {
 		return root;
-	}
-	
-	public DefaultConstructor getRootConstructor() {
-		return rootConstructor;
 	}
 	
 	public CFGNode getRootFirstStatement() {
@@ -59,6 +54,7 @@ public class MethodCFG {
 		this.root = root;
 	}
 	
+	//Creates link between method's block statements in chronological order.
 	public void extractMethodCFG() {
 		if(root != null) {
 			Block methodBody = ((MethodDeclaration) root.getASTNodes().get(0)).getBody();
@@ -83,28 +79,6 @@ public class MethodCFG {
 				root.addCFGNode(firstStatementInMethod);
 			}
 		}
-		else if(rootConstructor != null) {
-			
-		}
-	}
-	
-	public String makeDotForICFG() {
-		if(root != null) {
-			String dotString = trimDotContent(root.makeDot(new HashSet<CFGNode>()));
-			dotString = "subgraph cluster_" + root.getName() + "{\n" + dotString;
-			dotString += "label = " + root.getClassName() + "_" + root.getName() + "\n}\n";
-			dotString += root.linkICFG(new HashSet<CFGNode>());
-			return dotString;
-		}
-		if(rootConstructor != null) {
-			String className = rootConstructor.getClassName();
-			String dotString = "subgraph cluster_" + className + "{\n" + "label = " + className + "_" + className + "\n";
-			dotString += rootConstructor.toString() + "\n}\n";
-			//here to do something with default constructor:
-			//	dotString += rootConstructor.linkICFG();
-			return dotString;
-		}
-		return null;
 	}
 	
 	public void makeDotFile() {
@@ -117,17 +91,12 @@ public class MethodCFG {
 				fw.write("digraph G {\n" + trimDotContent(dotFileContent) + "}\n");
 				fw.close();
 			}
-			else if(rootConstructor != null) {
-				//do nothing for default constructor (design choice)
-			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	//this function is needed because during branching, different branch tails 
-	//will converge to a same node. Current makeDotFile function  will then create
-	//duplicate edges in output, which need to be trimmed.
+	//remove duplicate edges
 	private String trimDotContent(String raw) {
 		Set<String> uniqueStrs = new HashSet<>();
 		for(String i : raw.split("\n")) {

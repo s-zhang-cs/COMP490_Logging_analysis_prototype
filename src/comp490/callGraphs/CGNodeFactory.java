@@ -5,8 +5,13 @@ import java.util.Set;
 
 import org.eclipse.jdt.core.dom.ASTMatcher;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 
+/**
+ * Provides CGNode based on JDT's MethodDeclaration. 1 to 1 relationship between
+ * MethodDeclaration and CGNode. 
+ *
+ */
 public class CGNodeFactory {
 	
 	private static Set<CGNode> methodsInCGChain = new HashSet<>();
@@ -16,14 +21,12 @@ public class CGNodeFactory {
 		return methodsInCGChain;
 	}
 	
+	//for non-logging methods 
 	public static CGNode makeCGNode(MethodDeclaration node) {
 		if(node == null) {
 			return null;
 		}
 		for(CGNode method : methodsInCGChain) {
-			if(method.getDefaultConstructor() != null) {
-				continue;
-			}
 			if(astMatcher.match(method.getMethodDeclaration(), node)) {
 				return method;
 			}
@@ -33,20 +36,12 @@ public class CGNodeFactory {
 		return newNode;
 	}
 	
-	public static CGNode makeCGNode(TypeDeclaration typeDeclaration) {
-		ASTMatcher astMatcher = new ASTMatcher();
-		for(CGNode method : methodsInCGChain) {
-			if(method.getMethodCFG() != null) {
-				continue;
-			}
-			
-			if(astMatcher.match(typeDeclaration, method.getDefaultConstructor().getTypeDeclaration())) {
-				return method;
-			}
+	//for logging methods
+	public static CGNode makeCGNode(MethodInvocation node) {
+		if(node == null) {
+			return null;
 		}
-		CGNode newNode = new CGNode(typeDeclaration);
-		methodsInCGChain.add(newNode);
-		return newNode;
+		return new CGNode(node);
 	}
 	
 	public static void reset() {

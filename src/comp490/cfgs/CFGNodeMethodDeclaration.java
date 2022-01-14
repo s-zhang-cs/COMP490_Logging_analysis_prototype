@@ -1,35 +1,42 @@
 package comp490.cfgs;
 
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import comp490.handlers.JavaModel;
+
+/**
+ * Control flow node for method declaration 
+ *
+ */
 public class CFGNodeMethodDeclaration extends CFGNode{
 	private String className;
 	
 	public CFGNodeMethodDeclaration(MethodDeclaration methodDeclaration) {
 		super(methodDeclaration);
-		ASTNode node = methodDeclaration;
-		while(!(node instanceof TypeDeclaration)) {
-			node = node.getParent();
-		}
+
 		this.name = methodDeclaration.getName().getIdentifier();
-		this.className = ((TypeDeclaration)node).getName().getIdentifier();
+		this.className = methodDeclaration.resolveBinding().getDeclaringClass().getQualifiedName();
+		
+		String methodName = methodDeclaration.getName().getFullyQualifiedName();
+		String key = this.className + "." + methodName;
+		
+		//add string and methodDeclaration mapping to java model, in order to facilitate
+		//future references to the same methods by methodInvocation
+		JavaModel.methodDeclarationMap.put(key, methodDeclaration);
 	}
 	
 	public CFGNodeMethodDeclaration(MethodDeclaration methodDeclaration, String name) {
 		super(methodDeclaration);
-		ASTNode node = methodDeclaration;
-		while(!(node instanceof TypeDeclaration)) {
-			node = node.getParent();
-		}
-		this.name = methodDeclaration.getName().getIdentifier();
-		this.className = ((TypeDeclaration)node).getName().getIdentifier();
-	}
-	
-	public CFGNodeMethodDeclaration(MethodDeclaration methodDeclaration, String name, String className) {
-		super(methodDeclaration);
-		this.className = className;
+
+		this.name = name;
+		this.className = methodDeclaration.resolveBinding().getDeclaringClass().getQualifiedName();
+		
+		String methodName = methodDeclaration.getName().getFullyQualifiedName();
+		String key = this.className + "." + methodName;
+		
+		//add string and methodDeclaration mapping to java model, in order to facilitate
+		//future references to the same methods by methodInvocation
+		JavaModel.methodDeclarationMap.put(key, methodDeclaration);
 	}
 	
 	public String getClassName() {
@@ -38,8 +45,10 @@ public class CFGNodeMethodDeclaration extends CFGNode{
 	
 	@Override
 	public String toString() {
+		if(className.contains(".")) {
+			return className.replace(".", "_") + "_" + name + lineNbr;
+		}
 		return className + "_" + name + "_" + lineNbr;
 	}
-	
 	
 }

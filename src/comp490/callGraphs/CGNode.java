@@ -1,34 +1,45 @@
 package comp490.callGraphs;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.jdt.core.dom.ASTMatcher;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import comp490.cfgs.MethodCFG;
-import comp490.handlers.JavaModel.DefaultConstructor;
 
+/**
+ * Base call graph node.
+ *
+ */
 public class CGNode {
 	
+	private boolean isLoggingMethod;
+	private int loggingMethodLineNbr;
 	private MethodCFG methodCFG;
-	private List<CGNode> callers;
-	private ASTMatcher astMatcher;
+	private Set<CGNode> callers;
 	
 	//for explicit methods (including constructors)
 	public CGNode(MethodDeclaration methodDeclaration) {
+		isLoggingMethod = false;
 		methodCFG = new MethodCFG(methodDeclaration);
-		callers = new ArrayList<>();
-		astMatcher = new ASTMatcher();
+		callers = new HashSet<>();
 	}
 	
 	//for default constructors
 	public CGNode(TypeDeclaration typeDeclaration) {
+		isLoggingMethod = false;
 		methodCFG = new MethodCFG(typeDeclaration);
-		callers = new ArrayList<>();
-		astMatcher = new ASTMatcher();
+		callers = new HashSet<>();
+	}
+	
+	//for logging methods
+	public CGNode(MethodInvocation methodInvocation) {
+		isLoggingMethod = true;
+		loggingMethodLineNbr = ((CompilationUnit) methodInvocation.getRoot()).getLineNumber(methodInvocation.getStartPosition());
+		callers = new HashSet<>();
 	}
 	
 	public MethodCFG getMethodCFG() {
@@ -36,29 +47,14 @@ public class CGNode {
 	}
 	
 	public void addCaller(CGNode node) {
-		for(CGNode caller : callers) {
-			if(caller.getMethodDeclaration() != null && astMatcher.match(caller.getMethodDeclaration(), node)) {
-				return;
-			}
-			if(caller.getDefaultConstructor() != null && caller.getDefaultConstructor().equals(node.getDefaultConstructor())) {
-				return;
-			}
-		}
 		callers.add(node);
-	}
-	
+	}	
+		
 	public MethodDeclaration getMethodDeclaration() {
 		if(methodCFG == null || methodCFG.getRoot() == null) {
 			return null;
 		}
 		return (MethodDeclaration) methodCFG.getRoot().getASTNodes().get(0);
-	}
-	
-	public DefaultConstructor getDefaultConstructor() {
-		if(methodCFG == null || methodCFG.getRootConstructor() == null) {
-			return null;
-		}
-		return methodCFG.getRootConstructor();
 	}
 	
 	public String makeDotCG(Set<CGNode> traversed) {
@@ -68,7 +64,7 @@ public class CGNode {
 		traversed.add(this);
 		String str = "";
 		for(CGNode caller : callers) {
-			str += caller.toString() + " -> " + toString() + "\n";
+			str += caller.toString() + " -> " + this.toString() + "\n";
 		}
 		for(CGNode caller : callers) {
 			str += caller.makeDotCG(traversed);
@@ -76,29 +72,14 @@ public class CGNode {
 		return str;
 	}
 	
-	public String makeDotICFG(Set<CGNode> traversed) {
-		if(traversed.contains(this)) {
-			return "";
-		}
-		traversed.add(this);
-		String str = "";
-		if(methodCFG != null) {
-			methodCFG.extractMethodCFG();
-			str += methodCFG.makeDotForICFG();
-		}
-		for(CGNode caller : callers) {
-			str += caller.makeDotICFG(traversed);
-		}
-		return str;
-	}
-	
+	@Override
 	public String toString() {
-		if(methodCFG != null && methodCFG.getRootConstructor() != null) {
-			return methodCFG.getRootConstructor().toString();
+		if(isLoggingMethod) {
+			return "LoggingMethod_" + loggingMethodLineNbr;
 		}
-		else if(methodCFG != null && methodCFG.getRoot() != null){
+		if(methodCFG != null && methodCFG.getRoot() != null){
 			return methodCFG.getRoot().toString();
 		}
-		return null;
+		return "";
 	}
 }
