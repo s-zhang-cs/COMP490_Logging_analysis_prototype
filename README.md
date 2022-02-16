@@ -128,13 +128,13 @@ enhancedForStatement_13 -> enhancedForStatement_14
 which can be viewed using a graphviz viewer such as (https://dreampuf.github.io/GraphvizOnline/)
 and output:
 
-<img src="capture1.png">
+<img src="Capture1.PNG">
 
 where the numbers indicate the line number inside the source code.
 
 Similarly, a call graph for the ensemble of logging methods is generated:
 
-<img src="capture2.png">
+<img src="Capture2.PNG">
 
 Due to limitations in time and knowledge, this project remains on a 'toy project' scale, but I hope some of its ideas can be interesting and inspire a 'real' project... 
 
